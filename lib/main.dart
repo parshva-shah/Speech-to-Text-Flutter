@@ -43,7 +43,7 @@ class _SpeechScreenState extends State<SpeechScreen> {
         fontWeight: FontWeight.bold,
       ),
     ),
-    'subscribe': HighlightedWord(
+    'follow': HighlightedWord(
       onTap: () => print('follow'),
       textStyle: const TextStyle(
         color: Colors.red,
