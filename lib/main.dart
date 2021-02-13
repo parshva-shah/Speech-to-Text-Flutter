@@ -1,4 +1,6 @@
+import 'package:clipboard/clipboard.dart';
 import 'package:avatar_glow/avatar_glow.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:highlight_text/highlight_text.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
@@ -77,40 +79,59 @@ class _SpeechScreenState extends State<SpeechScreen> {
     _speech = stt.SpeechToText();
   }
 
+  final GlobalKey<ScaffoldState> _key = new GlobalKey<ScaffoldState>();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _key,
       appBar: AppBar(
-        title: Text('Confidence: ${(_confidence * 100.0).toStringAsFixed(1)}%'),
+        title: Text('Voice Recognition'),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: AvatarGlow(
-        animate: _isListening,
-        glowColor: Theme.of(context).primaryColor,
-        endRadius: 75.0,
-        duration: const Duration(milliseconds: 2000),
-        repeatPauseDuration: const Duration(milliseconds: 100),
-        repeat: true,
-        child: FloatingActionButton(
-          onPressed: _listen,
-          child: Icon(_isListening ? Icons.mic : Icons.mic_none),
-        ),
-      ),
-      body: SingleChildScrollView(
-        reverse: true,
-        child: Container(
-          padding: const EdgeInsets.fromLTRB(30.0, 30.0, 30.0, 150.0),
-          child: TextHighlight(
-            text: _text,
-            words: _highlights,
-            textStyle: const TextStyle(
-              fontSize: 32.0,
-              color: Colors.black,
-              fontWeight: FontWeight.w400,
+      body: Column(children: <Widget>[
+        SingleChildScrollView(
+          reverse: true,
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(15.0, 100.0, 30.0, 150.0),
+            child: TextHighlight(
+              text: _text,
+              words: _highlights,
+              textStyle: const TextStyle(
+                fontSize: 25.0,
+                color: Colors.black,
+                fontWeight: FontWeight.w400,
+              ),
             ),
           ),
         ),
-      ),
+        Expanded(
+            child: Row(
+          children: <Widget>[
+            Padding(padding: const EdgeInsets.fromLTRB(0.0, 0, 0, 0)),
+            AvatarGlow(
+                animate: _isListening,
+                glowColor: Theme.of(context).primaryColor,
+                endRadius: 70.0,
+                // duration: const Duration(milliseconds: 5000),
+                // repeatPauseDuration: const Duration(milliseconds: 100),
+                repeat: true,
+                child: FloatingActionButton(
+                  onPressed: _listen,
+                  backgroundColor: Colors.red,
+                  child: Icon(_isListening ? Icons.mic : Icons.mic_none),
+                )),
+            FloatingActionButton(
+              child: Icon(Icons.copy_outlined),
+               onPressed: () {
+                 FlutterClipboard.copy(_text).then((value) => _key
+                     .currentState
+                     .showSnackBar(new SnackBar(content: Text('Copied'))));
+               },
+              // padding: const EdgeInsets.fromLTRB(15.0, 100.0, 30.0, 150.0),
+            ),
+          ],
+        )),
+      ]),
     );
   }
 
@@ -125,9 +146,7 @@ class _SpeechScreenState extends State<SpeechScreen> {
         _speech.listen(
           onResult: (val) => setState(() {
             _text = val.recognizedWords;
-            if (val.hasConfidenceRating && val.confidence > 0) {
-              _confidence = val.confidence;
-            }
+
           }),
         );
       }
